@@ -1,3 +1,4 @@
 *.pyc
-
-/twistedgadu/HeaderPacket.py~
+dist/
+twistedgadu.egg-info/
+*.*~
