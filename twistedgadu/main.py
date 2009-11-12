@@ -41,7 +41,6 @@ class GGClient(Protocol):
     def sendPacket(self, msg):
         header = GGHeader()
 	header.read(msg)
-        print 'OUT header.type: ', header.type
 
         self.transport.write(msg)
 
@@ -51,13 +50,10 @@ class GGClient(Protocol):
         self.__contacts_list = self.factory._conn.contacts_list
 
     def dataReceived(self, data):
-        print 'received data: ', data
         header = GGHeader()
 	header.read(data)
-        print 'header.type: ', header.type
         #logowanie
 	if header.type == GGIncomingPackets.GGWelcome:
-            print 'packet: GGWelcome'
             in_packet = GGWelcome()
             in_packet.read(data, header.length)
             self.seed = in_packet.seed
@@ -66,25 +62,20 @@ class GGClient(Protocol):
             d.addCallback(self._conn.on_auth_got_seed, self.seed)
             d = None
         elif header.type == GGIncomingPackets.GGLoginOK:
-            print 'packet: GGLoginOK'
             d = defer.Deferred()
             d.callback(self)
             d.addCallback(self._conn.on_login_ok)
             self._send_contacts_list()
-            print 'wyslano liste kontaktow'
             self._ping()
         elif header.type == GGIncomingPackets.GGLoginFailed:
-            print 'packet: GGLoginFailed'
             d = defer.Deferred()
             d.callback(self)
             d.addCallback(self._conn.on_login_failed)
         elif header.type == GGIncomingPackets.GGNeedEMail:
-            print 'packet: GGNeedEMail'
             d = defer.Deferred()
             d.callback(self)
             d.addCallback(self._conn.on_need_email)
         elif header.type == GGIncomingPackets.GGDisconnecting:
-            print 'packet: GGDisconnecting'
             in_packet = GGDisconnecting()
             in_packet.read(data, header.length)
             d = defer.Deferred()
@@ -99,7 +90,6 @@ class GGClient(Protocol):
             d.addCallback(self._conn.on_notify_reply, self.__contacts_list)
         #lista
         elif header.type == GGIncomingPackets.GGUserListReply:
-            print 'packet: GGUserListReply'
             in_packet = GGUserListReply()
             in_packet.read(data, header.length)
             if in_packet.reqtype == GGUserListReplyTypes.GetMoreReply:
@@ -157,7 +147,7 @@ class GGClient(Protocol):
             d.callback(self)
             d.addCallback(self._conn.on_status60, self.__contacts_list[uin])
         else:
-            print 'packet: unknown: type %s, length %s' % (header.type, header.length)
+            pass
 
     def _send_contacts_list(self):
         """
@@ -166,9 +156,7 @@ class GGClient(Protocol):
         UWAGA: To nie jest eksport listy kontaktow do serwera!
         """
         assert self.__contacts_list  == None or type(self.__contacts_list) == ContactsList
-        print 'czas wyslac nasza liste kontaktow :D'
         if self.__contacts_list == None or len(self.__contacts_list) == 0:
-            print 'yupp. wysylamy pusta liste kontaktow'
             out_packet = GGListEmpty()
             self.sendPacket(out_packet.get())
             return
@@ -191,7 +179,6 @@ class GGClient(Protocol):
         """
         out_packet = GGPing()
         self.sendPacket(out_packet.get())
-        print "[PING]"
         reactor.callLater(96, self._ping)
 
     def __make_contacts_list(self, request):
