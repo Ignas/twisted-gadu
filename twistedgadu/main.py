@@ -17,8 +17,6 @@ from GGConstans import *
 from Exceptions import *
 from Contacts import *
 
-log.startLogging(sys.stdout)
-
 gg_uin = 4634020
 gg_passwd = 'xxxxxx'
 gg_status = GGStatuses.Avail
